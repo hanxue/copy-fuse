@@ -230,17 +230,17 @@ class CopyFUSE(LoggingMixIn, Operations):
         return 0
 
     def statfs(self, path):
-    	params = {}
-    	response = self.copy_api.copygetrequest('/rest/user', params, True)
-    	blocks = response["storage"]["used"]/512
-    	bavail = response["storage"]["quota"]/512
-    	bfree  = (response["storage"]["quota"]-response["storage"]["used"])/512
+        params = {}
+        response = self.copy_api.copygetrequest('/rest/user', params, True)
+        blocks = response["storage"]["used"]/512
+        bavail = response["storage"]["quota"]/512
+        bfree  = (response["storage"]["quota"]-response["storage"]["used"])/512
         return dict(f_bsize=512, f_frsize=512, f_blocks=bavail, f_bfree=bfree, f_bavail=bfree)
 
     def getattr(self, path, fh=None):
         # print "getattr: " + path
         if path == '/':
-            st = dict(st_mode=(S_IFDIR | 0755), st_nlink=2)
+            st = dict(st_mode=(S_IFDIR | 0o755), st_nlink=2)
             st['st_ctime'] = st['st_atime'] = st['st_mtime'] = time.time()
         else:
             name = str(os.path.basename(path))
@@ -249,9 +249,9 @@ class CopyFUSE(LoggingMixIn, Operations):
             if name not in objects:
                 raise FuseOSError(ENOENT)
             elif objects[name]['type'] == 'file':
-                st = dict(st_mode=(S_IFREG | 0644), st_size=int(objects[name]['size']))
+                st = dict(st_mode=(S_IFREG | 0o644), st_size=int(objects[name]['size']))
             else:
-                st = dict(st_mode=(S_IFDIR | 0755), st_nlink=2)
+                st = dict(st_mode=(S_IFDIR | 0o755), st_nlink=2)
 
             st['st_ctime'] = st['st_atime'] = objects[name]['ctime']
             st['st_mtime'] = objects[name]['mtime']
@@ -271,9 +271,10 @@ class CopyFUSE(LoggingMixIn, Operations):
         if response['result'] != 'success':
             raise FuseOSError(EIO)
 
-	# update tree_children
- 	name = os.path.basename(path)
- 	self.copy_api.tree_children[os.path.dirname(path)][name] = {'name': name, 'type': 'dir', 'size': 0, 'ctime': time.time(), 'mtime': time.time()}
+        # update tree_children
+        name = os.path.basename(path)
+        self.copy_api.tree_children[os.path.dirname(path)][name] = {'name': name, 'type': 'dir', 'size': 0,
+                                                                    'ctime': time.time(), 'mtime': time.time()}
 
     def open(self, path, flags):
         # print "open: " + path
@@ -283,13 +284,13 @@ class CopyFUSE(LoggingMixIn, Operations):
     def flush(self, path, fh):
         # print "flush: " + path
         if path in self.files:
-            if self.files[path]['modified'] == True:
+            if self.files[path]['modified']:
                 self.file_upload(path)
 
     def fsync(self, path, datasync, fh):
         # print "fsync: " + path
         if path in self.files:
-            if self.files[path]['modified'] == True:
+            if self.files[path]['modified']:
                 self.file_upload(path)
 
     def release(self, path, fh):
@@ -321,7 +322,8 @@ class CopyFUSE(LoggingMixIn, Operations):
         # print "create: " + path
         name = os.path.basename(path)
         if os.path.dirname(path) in self.copy_api.tree_children:
-            self.copy_api.tree_children[os.path.dirname(path)][name] = {'name': name, 'type': 'file', 'size': 0, 'ctime': time.time(), 'mtime': time.time()}
+            self.copy_api.tree_children[os.path.dirname(path)][name] = {'name': name, 'type': 'file', 'size': 0,
+                                                                        'ctime': time.time(), 'mtime': time.time()}
         self.file_get(path, download=False)
         self.file_upload(path)
         return 0
@@ -356,6 +358,7 @@ class CopyFUSE(LoggingMixIn, Operations):
     listxattr = None
     opendir = None
     releasedir = None
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -394,7 +397,7 @@ def main():
     fuse_args.update(options)
 
     logfile = None
-    if fuse_args.get('debug', False) == True:
+    if fuse_args.get('debug', False):
         # send to stderr same as where fuse lib sends debug messages
         logfile = stderr
 
@@ -402,4 +405,4 @@ def main():
 
 
 if __name__ == "__main__":
-	main()
+    main()

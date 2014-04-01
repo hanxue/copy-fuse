@@ -33,7 +33,7 @@ else:
     _libfuse_path = find_library('fuse')
 if not _libfuse_path:
     if _machine == 'armv5tel':
-        _libfuse_path= '/opt/local/lib/libfuse.so'
+        _libfuse_path = '/opt/local/lib/libfuse.so'
     else:
         raise EnvironmentError('Unable to find libfuse')
 
@@ -335,7 +335,7 @@ class FUSE(object):
         """Decorator for the methods that follow"""
         try:
             return func(*args, **kwargs) or 0
-        except OSError, e:
+        except OSError as e:
             return -(e.errno or EFAULT)
         except:
             print_exc()
@@ -583,7 +583,7 @@ class Operations(object):
 
         if path != '/':
             raise FuseOSError(ENOENT)
-        return dict(st_mode=(S_IFDIR | 0755), st_nlink=2)
+        return dict(st_mode=(S_IFDIR | 0o755), st_nlink=2)
 
     def getxattr(self, path, name, position=0):
         raise FuseOSError(ENOTSUP)
@@ -677,12 +677,12 @@ class LoggingMixIn:
 
     def __call__(self, op, path, *args):
         if self.logfile:
-            print '->', op, path, repr(args)
+            print('->', op, path, repr(args))
         ret = '[Unhandled Exception]'
         try:
             ret = getattr(self, op)(path, *args)
             return ret
-        except OSError, e:
+        except OSError as e:
             ret = str(e)
             raise
         finally:
