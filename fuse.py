@@ -363,13 +363,13 @@ class FUSE(object):
         return self.operations('rmdir', path)
 
     def symlink(self, source, target):
-        return self.operations('symlink', target, source)
+        return self.operations('symlink', source, target)
 
     def rename(self, old, new):
         return self.operations('rename', old, new)
 
     def link(self, source, target):
-        return self.operations('link', target, source)
+        return self.operations('link', source, target)
 
     def chmod(self, path, mode):
         return self.operations('chmod', path, mode)
@@ -593,7 +593,7 @@ class Operations(object):
            Use it instead of __init__ if you start threads on initialization."""
         pass
 
-    def link(self, target, source):
+    def link(self, source, target):
         raise FuseOSError(EROFS)
 
     def listxattr(self, path):
@@ -655,7 +655,7 @@ class Operations(object):
            On Mac OS X f_bsize and f_frsize must be a power of 2 (minimum 512)."""
         return {}
 
-    def symlink(self, target, source):
+    def symlink(self, source, target):
         raise FuseOSError(EROFS)
 
     def truncate(self, path, length, fh=None):
