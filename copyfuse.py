@@ -48,7 +48,7 @@ class CopyAPI:
             headers['X-Authorization'] = self.auth_token
         response = self.httpconn.request_encode_body("POST", uri, {'data': json.dumps(data)}, headers, False)
         if return_json == True:
-            return json.loads(response.data, 'latin-1')
+            return json.loads(response.data.decode(), 'latin-1')
         else:
             return response.data
 
